@@ -1,0 +1,101 @@
+erDiagram
+    Pasajero }|--|| TipoDocumento: Tiene
+    Pasajero ||--|{ Tarjeta: Tiene
+    Pasajero }|--|| Reserva: Tiene
+    Vuelo }|--|| Pasajero: Tiene
+    Vuelo }|--|| Aeronave: Tiene
+    Vuelo }|--|| Ciudad: Tiene
+    Vuelo }|--|| ServicioComida: Tiene
+    Vuelo }|--|| Puerta: Tiene
+    Vuelo ||--|{ Reserva: Tiene
+    Vuelo ||--|{ Asiento: Tiene
+    TipoAsiento ||--|{ Asiento: Tiene
+    EstadoAsiento ||--|{ Asiento: Tiene
+
+    TipoDocumento {
+        int IDTipoDocumento PK
+        string nombreTipoDocumento
+        string descripcionTipoDocumento
+    }
+
+    Tarjeta {
+        int numeroTarjeta PK
+        int CVV
+        string nombre
+        string apellido
+        string telefono
+        datetime fechaVencimiento
+    }
+
+    Pasajero {
+        int numeroDocumentoPasajero PK
+        int IDTipoDocumento FK
+        string nombrePasajero
+        string apellidoPasajero
+        int telefono
+        string mail
+    }
+    
+    Ciudad {
+        int IDCiudad PK
+        string nombreCiudad
+        string descripcionCiudad
+    }
+
+    Aeronave {
+        string numeroAeronave PK
+        string modelo
+    }
+
+    Puerta {
+        int IDPuerta PK
+        string ubicacionPuerta
+        string descripcionPuerta
+    }
+
+    ServicioComida {
+        int IDServicioComida PK
+        string nombreServicioComida
+        string descripcionServicioComida
+    }
+
+    EstadoAsiento {
+        int IDEstadoAsiento PK
+        string nombreEstadoAsiento
+        string descripcionEstadoAsiento
+    }
+
+    TipoAsiento {
+        int IDTipoAsiento PK
+        string descripcionTipoAsiento
+        float precio
+    }
+
+    Asiento {
+        int IDAsiento PK
+        string ubicacionAsiento
+        int IDEstadoAsiento FK
+        int IDTipoAsiento FK
+    }
+
+    Vuelo {
+        string numeroVuelo PK
+        string nombreCompania 
+        int ciudadSalida FK
+        int ciudadLlegada FK
+        datetime fechaYhoraSalida
+        datetime fechaYhoraLlegada
+        int numeroAeronave FK
+        float distancia 
+        int IDServicioComida FK
+        int IDPuerta FK
+    }
+
+    Reserva {
+        string codReserva PK
+        string numeroVuelo FK
+        int IDPasajero FK
+        int IDAsiento FK
+        datetime fechaYHoraReserva
+        float numeroTarjeta    
+    }
