@@ -32,7 +32,10 @@ INNER JOIN staff stf ON s.manager_staff_id = stf.staff_id
 GROUP BY s.store_id;
 
 -- Query 8
-SELECT CONCAT(a.first_name, ' ', a.last_name) AS 'Actor', COUNT(f.film_id) AS 'Películas Actuadas' FROM film_actor fa
-INNER JOIN actor a USING (actor_id)
-INNER JOIN film f USING (film_id)
-GROUP BY CONCAT(a.first_name, ' ', a.last_name);
+SELECT a.actor_id AS 'ID Actor', CONCAT(a.first_name, ' ', a.last_name) AS 'Actor', COUNT(fa.film_id) AS 'Películas Actuadas' FROM actor a
+INNER JOIN film_actor fa USING (actor_id)
+GROUP BY a.actor_id
+HAVING COUNT(fa.film_id) >= ALL (SELECT COUNT(fa2.film_id) FROM actor a2 
+INNER JOIN film_actor fa2 USING (actor_id)
+WHERE a2.actor_id != a.actor_id
+GROUP BY a2.actor_id);
