@@ -2,9 +2,9 @@ USE sakila;
 
 -- Query 1
 SELECT a1.first_name AS 'Nombre Compartido', a1.last_name AS 'Apellido 1', a2.last_name AS 'Apellido 2', 
-(SELECT f.title FROM film f WHERE 
+CONCAT((SELECT f.title FROM film f WHERE 
 a1.actor_id IN (SELECT fa.actor_id FROM film_actor fa WHERE f.film_id = fa.film_id)
-AND a2.actor_id IN (SELECT fa.actor_id FROM film_actor fa WHERE f.film_id = fa.film_id)) AS 'Peliculas Compartidas' 
+AND a2.actor_id IN (SELECT fa.actor_id FROM film_actor fa WHERE f.film_id = fa.film_id))) AS 'Peliculas Compartidas' 
 FROM actor a1, actor a2
 WHERE a1.first_name = a2.first_name AND a1.actor_id > a2.actor_id 
 AND (a1.first_name LIKE 'a%' OR a1.first_name LIKE 'e%' OR a1.first_name LIKE 'i%' OR a1.first_name LIKE 'o%' OR a1.first_name LIKE 'u%');
@@ -50,3 +50,13 @@ INNER JOIN inventory i USING (inventory_id)
 INNER JOIN film f USING (film_id)
 WHERE YEAR(p.payment_date) = 2006
 GROUP BY stf.staff_id;
+
+
+-- Practice
+SELECT c.first_name AS 'Nombre', c.first_name AS 'Apellido', GROUP_CONCAT(DISTINCT f.rating) AS 'Ratings' FROM customer c
+INNER JOIN rental r USING (customer_id)
+INNER JOIN inventory i USING (inventory_id)
+INNER JOIN film f USING (film_id)
+GROUP BY c.customer_id
+HAVING GROUP_CONCAT(DISTINCT f.rating) = (SELECT GROUP_CONCAT(DISTINCT f2.rating) from film f2);
+
