@@ -4,10 +4,10 @@ USE sakila;
 -- Create a view named list_of_customers, it should contain the following columns:
 --    customer id
 --    customer full name,
---   address
+--    address
 --    zip code
 --    phone
---   city
+--    city
 --    country
 --    status (when active column is 1 show it as 'active', otherwise is 'inactive')
 --    store id
