@@ -1,0 +1,63 @@
+USE VIVERO_FENIX;
+
+-- QUERY 1
+
+CREATE OR REPLACE VIEW customer_purchase_summary AS 
+	SELECT C.COD_CLIENTE AS 'ID del cliente', C.NOMBRE AS 'Nombre', COUNT(F.NRO_FACTURA) AS 'Número de Facturas', SUM(DF.CANTIDAD * P.PRECIO) AS 'Total Gastado',
+    
+    (SELECT TP.NOMBRE FROM DETALLES_FACTURAS DF INNER JOIN FACTURAS F USING (NRO_FACTURA) 
+	INNER JOIN PLANTAS P USING (COD_PLANTA) INNER JOIN TIPOS_PLANTAS TP USING (COD_TIPO_PLANTA) WHERE F.COD_CLIENTE = C.COD_CLIENTE 
+    GROUP BY P.COD_TIPO_PLANTA ORDER BY SUM(DF.CANTIDAD) DESC LIMIT 1) AS 'Mayor cantidad de Compras por Categoría',
+    
+    GROUP_CONCAT(DISTINCT TP.NOMBRE, ': ', (SELECT SUM(DF.CANTIDAD) FROM DETALLES_FACTURAS DF INNER JOIN FACTURAS F USING (NRO_FACTURA) 
+	INNER JOIN PLANTAS P USING (COD_PLANTA) WHERE F.COD_CLIENTE = C.COD_CLIENTE AND P.COD_TIPO_PLANTA = TP.COD_TIPO_PLANTA) SEPARATOR '; ') 
+    AS 'Cantidad de plantas por Categoría'
+    
+    FROM CLIENTES C INNER JOIN FACTURAS F USING (COD_CLIENTE) INNER JOIN DETALLES_FACTURAS DF USING (NRO_FACTURA) 
+    INNER JOIN PLANTAS P USING (COD_PLANTA) INNER JOIN TIPOS_PLANTAS TP USING (COD_TIPO_PLANTA) GROUP BY C.COD_CLIENTE ORDER BY C.COD_CLIENTE;
+
+SELECT * FROM customer_purchase_summary;
+
+-- QUERY 2
+
+DELIMITER //
+	CREATE PROCEDURE CrearListaClientesLocalidad(IN nombreLocalidad VARCHAR(100), OUT listaClientes VARCHAR(5000))
+		BEGIN
+			DECLARE finished INT DEFAULT 0;
+            DECLARE clientes VARCHAR(100) DEFAULT "";
+            
+            DECLARE clientes_cursor CURSOR FOR
+				SELECT CONCAT(C.NOMBRE, ' ', C.APELLIDO) FROM CLIENTES C INNER JOIN LOCALIDADES L USING (COD_LOCALIDAD) WHERE L.NOMBRE = nombreLocalidad;
+                
+			DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = 1;
+            
+            SET listaClientes = "";
+            
+            OPEN clientes_cursor;
+            
+            crear_clientes_list: LOOP
+				FETCH clientes_cursor INTO clientes;
+                
+                IF finished = 1 THEN
+					LEAVE crear_clientes_list;
+				END IF;
+				
+                SET listaClientes = CONCAT(listaClientes, ': ', clientes);
+            END LOOP crear_clientes_list;
+        END; //
+DELIMITER ;
+
+DROP PROCEDURE CrearListaClientesLocalidad;
+CALL CrearListaClientesLocalidad('CORDOBA', @listaClientes);
+SELECT @listaClientes;
+
+-- QUERY 3
+
+ALTER TABLE PLANTAS ADD COLUMN lastModification DATETIME;
+ALTER TABLE PLANTAS ADD COLUMN lastModifierUser VARCHAR(100);
+CREATE TRIGGER before_plantas_insert BEFORE INSERT ON PLANTAS FOR EACH ROW SET NEW.lastModification = NOW(), NEW.lastModifierUser = USER();
+CREATE TRIGGER before_plantas_update BEFORE UPDATE ON PLANTAS FOR EACH ROW SET NEW.lastModification = NOW(), NEW.lastModifierUser = USER();
+
+SELECT * FROM PLANTAS;
+UPDATE PLANTAS SET PRECIO = 60 WHERE COD_PLANTA = 1;
+INSERT INTO PLANTAS(COD_PLANTA, DESCRIPCION, COD_TIPO_PLANTA, PRECIO, STOCK) VALUES (16, 'LAVANDA', 1, 27.89, 9);
